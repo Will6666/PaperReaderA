@@ -54,8 +54,11 @@ public:
 	afx_msg void OnLButtonUp(UINT nFlags, CPoint point);
 	afx_msg void OnBnClickedBtnXuanqu();
 	int coordinate[100][2];
-	int num;//点击次数
+	static int num;//点击次数
 	CString m_edit_coordinate;
 	TCHAR szBuffer[20];
 	CButton m_btn_xuanqu;
+	 //CArray<CPoint,CPoint>ptArray;
+	static int ptArray[100][2];
+	afx_msg void OnBnClickedBtnShow();
 };

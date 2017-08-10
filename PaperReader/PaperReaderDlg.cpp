@@ -50,6 +50,8 @@ END_MESSAGE_MAP()
 CvCapture* CPaperReaderDlg:: m_pCapture ;
 IplImage* CPaperReaderDlg::m_pFrame;
 CStatic CPaperReaderDlg::m_Pic;
+int CPaperReaderDlg::num;
+int CPaperReaderDlg::ptArray[100][2];
 
 
 CPaperReaderDlg::CPaperReaderDlg(CWnd* pParent /*=NULL*/)
@@ -85,6 +87,7 @@ BEGIN_MESSAGE_MAP(CPaperReaderDlg, CDialogEx)
 	ON_WM_TIMER()
 	ON_WM_LBUTTONUP()
 	ON_BN_CLICKED(IDC_BTN_XUANQU, &CPaperReaderDlg::OnBnClickedBtnXuanqu)
+	ON_BN_CLICKED(IDC_BTN_SHOW, &CPaperReaderDlg::OnBnClickedBtnShow)
 END_MESSAGE_MAP()
 
 
@@ -251,6 +254,65 @@ void CPaperReaderDlg::OnBnClickedBtnDaochu()
 }
 
 
+
+
+
+void CPaperReaderDlg::OnLButtonUp(UINT nFlags, CPoint point)
+{
+	// TODO: 在此添加消息处理程序代码和/或调用默认值
+	if (m_checked == true)
+	{
+		ptArray[num][1] = point.x-37;
+		ptArray[num][2] = point.y-37;
+		//ptArray.Add(point);
+		wsprintf(szBuffer,TEXT("%d,%d "),ptArray[num][1],ptArray[num][2]);
+		
+		UpdateData(TRUE);
+		m_edit_coordinate += szBuffer;
+		UpdateData(FALSE);
+		num +=1;
+	}
+	CDialogEx::OnLButtonUp(nFlags, point);
+}
+
+//取点按钮
+void CPaperReaderDlg::OnBnClickedBtnXuanqu()
+{
+	// TODO: 在此添加控件通知处理程序代码
+	if (m_checked == false)
+	{
+		SetTimer(2,10,TimerProc);
+		m_checked = true;
+		m_btn_xuanqu.SetWindowTextA("选取完成");
+		//并且数据清零
+		//并且数据清零
+		//并且数据清零
+		//并且数据清零
+		//并且数据清零
+		//并且数据清零bixu
+		num = 0;
+		UpdateData(TRUE);
+		m_edit_coordinate = TEXT("");
+		UpdateData(FALSE);
+		KillTimer(2);
+	}
+	else
+	{
+		m_checked = false;
+		m_btn_xuanqu.SetWindowTextA("重新选取");
+		
+	}
+
+}
+
+
+void CPaperReaderDlg::OnBnClickedBtnShow()
+{
+	// TODO: 在此添加控件通知处理程序代码
+	SetTimer(2,10,TimerProc);
+}
+
+
 VOID CALLBACK CPaperReaderDlg::TimerProc(
 	HWND hwnd,         // handle to window
 	UINT uMsg,         // WM_TIMER message
@@ -281,50 +343,18 @@ VOID CALLBACK CPaperReaderDlg::TimerProc(
 	if (idEvent == 2)
 	{
 		hDC = m_Pic.GetDC()->GetSafeHdc();
-// 		SetPixel(hDC,point.x,point.y,RGB(0,0,0));
-// 		SetPixel(hDC,point.x+1,point.y+1,RGB(0,0,0));
+		for (int i = 0; i <= num; i++)
+		{
+			SetPixel(hDC,ptArray[i][1],ptArray[i][2],RGB(0,255,0));
+			SetPixel(hDC,ptArray[i][1]+1,ptArray[i][2],RGB(255,0,0));
+			SetPixel(hDC,ptArray[i][1],ptArray[i][2]+1,RGB(255,0,255));
+			SetPixel(hDC,ptArray[i][1]+1,ptArray[i][2]+1,RGB(255,255,0));
+			SetPixel(hDC,ptArray[i][1]-1,ptArray[i][2],RGB(0,255,0));
+			SetPixel(hDC,ptArray[i][1]-1,ptArray[i][2]-1,RGB(255,0,0));
+			SetPixel(hDC,ptArray[i][1]-1,ptArray[i][2]+1,RGB(255,0,255));
+			SetPixel(hDC,ptArray[i][1]+1,ptArray[i][2]-1,RGB(255,255,0));
+			SetPixel(hDC,ptArray[i][1],ptArray[i][2]-1,RGB(255,255,0));
+		}
 		DeleteDC(hDC);
 	}
-}
-
-
-CArray<CPoint,CPoint>ptArray;
-void CPaperReaderDlg::OnLButtonUp(UINT nFlags, CPoint point)
-{
-	// TODO: 在此添加消息处理程序代码和/或调用默认值
-	if (m_checked == true)
-	{
-		ptArray.Add(point);
-		wsprintf(szBuffer,TEXT("%d,%d "),ptArray.GetAt(num),ptArray.GetAt(num));
-
-		UpdateData(TRUE);
-		m_edit_coordinate += szBuffer;
-		UpdateData(FALSE);
-		num +=1;
-	}
-	//SetTimer(2,10,TimerProc);
-	CDialogEx::OnLButtonUp(nFlags, point);
-}
-
-//取点按钮
-void CPaperReaderDlg::OnBnClickedBtnXuanqu()
-{
-	// TODO: 在此添加控件通知处理程序代码
-	if (!m_checked == true)
-	{
-		m_checked = true;
-		m_btn_xuanqu.SetWindowTextA("选取完成");
-		//并且数据清零
-		ptArray.RemoveAll();
-		num = 0;
-		UpdateData(TRUE);
-		m_edit_coordinate = TEXT("");
-		UpdateData(FALSE);
-	}
-	else
-	{
-		m_checked = false;
-		m_btn_xuanqu.SetWindowTextA("重新选取");
-	}
-
 }
