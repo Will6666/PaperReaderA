@@ -106,6 +106,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\..\Program\Magic\Magic\CvvImage.h" />
+    <ClInclude Include="HelpDlg.h" />
     <ClInclude Include="PaperReader.h" />
     <ClInclude Include="PaperReaderDlg.h" />
     <ClInclude Include="Resource.h" />
@@ -114,6 +115,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="CvvImage.cpp" />
+    <ClCompile Include="HelpDlg.cpp" />
     <ClCompile Include="PaperReader.cpp" />
     <ClCompile Include="PaperReaderDlg.cpp" />
     <ClCompile Include="stdafx.cpp">

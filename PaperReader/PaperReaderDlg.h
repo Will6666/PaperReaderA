@@ -48,6 +48,7 @@ public:
 	static IplImage* m_pFrame;
 	bool m_Opened;
 	bool m_checked;
+	bool m_yuejuan;
 	CButton m_btn_openCam;
 	static CStatic m_Pic;
 	static VOID CALLBACK TimerProc(HWND hwnd, UINT uMsg, UINT_PTR idEvent, DWORD dwTime);
@@ -58,7 +59,12 @@ public:
 	CString m_edit_coordinate;
 	TCHAR szBuffer[20];
 	CButton m_btn_xuanqu;
-	 //CArray<CPoint,CPoint>ptArray;
-	static int ptArray[100][2];
+
+	static int ptArray[200][2];//保存点坐标的数组
+	static int rightnum;//正答数
 	afx_msg void OnBnClickedBtnShow();
+	int m_edit_zhengda;//编辑框变量
+	int m_edit_yixuantishu;//编辑框变量
+	afx_msg void OnMenuExit();
+	afx_msg void OnMenuHelp();
 };

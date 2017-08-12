@@ -6,6 +6,7 @@
 #include "PaperReader.h"
 #include "PaperReaderDlg.h"
 #include "afxdialogex.h"
+#include "HelpDlg.h"
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -51,16 +52,20 @@ CvCapture* CPaperReaderDlg:: m_pCapture ;
 IplImage* CPaperReaderDlg::m_pFrame;
 CStatic CPaperReaderDlg::m_Pic;
 int CPaperReaderDlg::num;
-int CPaperReaderDlg::ptArray[100][2];
+int CPaperReaderDlg::ptArray[200][2];
+int CPaperReaderDlg::rightnum;
 
 
 CPaperReaderDlg::CPaperReaderDlg(CWnd* pParent /*=NULL*/)
 	: CDialogEx(CPaperReaderDlg::IDD, pParent)
 	, m_edit_coordinate(_T(""))
+	, m_edit_zhengda(0)
+	, m_edit_yixuantishu(0)
 {
 	m_hIcon = AfxGetApp()->LoadIcon(IDR_MAINFRAME);
 	m_Opened = false;
 	m_checked = false;
+	m_yuejuan = false;
 	num = 0;
 }
 
@@ -71,6 +76,8 @@ void CPaperReaderDlg::DoDataExchange(CDataExchange* pDX)
 	DDX_Control(pDX, IDC_PIC_CAM, m_Pic);
 	DDX_Text(pDX, IDC_EDIT_ZUOBIAO, m_edit_coordinate);
 	DDX_Control(pDX, IDC_BTN_XUANQU, m_btn_xuanqu);
+	DDX_Text(pDX, IDC_EDIT_ZHENGDA, m_edit_zhengda);
+	DDX_Text(pDX, IDC_EDIT_YIXUANTISHU, m_edit_yixuantishu);
 }
 
 BEGIN_MESSAGE_MAP(CPaperReaderDlg, CDialogEx)
@@ -87,7 +94,9 @@ BEGIN_MESSAGE_MAP(CPaperReaderDlg, CDialogEx)
 	ON_WM_TIMER()
 	ON_WM_LBUTTONUP()
 	ON_BN_CLICKED(IDC_BTN_XUANQU, &CPaperReaderDlg::OnBnClickedBtnXuanqu)
-	ON_BN_CLICKED(IDC_BTN_SHOW, &CPaperReaderDlg::OnBnClickedBtnShow)
+	
+	ON_COMMAND(ID_32771, &CPaperReaderDlg::OnMenuExit)
+	ON_COMMAND(ID_32772, &CPaperReaderDlg::OnMenuHelp)
 END_MESSAGE_MAP()
 
 
@@ -237,8 +246,23 @@ void CPaperReaderDlg::OnBnClickedBtnShoudongluru()
 void CPaperReaderDlg::OnBnClickedBtnYuejuan()
 {
 	// TODO: 在此添加控件通知处理程序代码
-	SetTimer(2,10,TimerProc);
-	
+		HDC hDC;
+		hDC = m_Pic.GetDC()->GetSafeHdc();
+		for (int i = 0; i < num; i++)
+		{
+			COLORREF cr;
+			cr = GetPixel(hDC,ptArray[i][0],ptArray[i][1]+1);
+			int crB = GetBValue(cr);
+			if (crB == 0)
+			{
+				rightnum += 1;
+			}
+		}
+		UpdateData(TRUE);
+		m_edit_zhengda = rightnum;
+		m_edit_yixuantishu = num;
+		UpdateData(FALSE);
+		rightnum = 0;
 }
 
 //自动阅卷按钮
@@ -253,20 +277,15 @@ void CPaperReaderDlg::OnBnClickedBtnDaochu()
 	// TODO: 在此添加控件通知处理程序代码
 }
 
-
-
-
-
+//按下左键
 void CPaperReaderDlg::OnLButtonUp(UINT nFlags, CPoint point)
 {
 	// TODO: 在此添加消息处理程序代码和/或调用默认值
-	if (m_checked == true)
+	if (m_checked == true && point.x > 37 && point.x <= 451 && point.y > 37 && point.y <= 381)
 	{
-		ptArray[num][1] = point.x-37;
-		ptArray[num][2] = point.y-37;
-		//ptArray.Add(point);
-		wsprintf(szBuffer,TEXT("%d,%d "),ptArray[num][1],ptArray[num][2]);
-		
+		ptArray[num][0] = point.x-37;
+		ptArray[num][1] = point.y-37;
+		wsprintf(szBuffer,TEXT("%d,%d "),ptArray[num][0],ptArray[num][1]);
 		UpdateData(TRUE);
 		m_edit_coordinate += szBuffer;
 		UpdateData(FALSE);
@@ -285,31 +304,21 @@ void CPaperReaderDlg::OnBnClickedBtnXuanqu()
 		m_checked = true;
 		m_btn_xuanqu.SetWindowTextA("选取完成");
 		//并且数据清零
-		//并且数据清零
-		//并且数据清零
-		//并且数据清零
-		//并且数据清零
-		//并且数据清零bixu
+		memset(ptArray,0,sizeof(int)*200*2);
 		num = 0;
+		rightnum = 0;
 		UpdateData(TRUE);
 		m_edit_coordinate = TEXT("");
 		UpdateData(FALSE);
-		KillTimer(2);
+		this->RedrawWindow();
+		m_yuejuan = false;
 	}
 	else
 	{
 		m_checked = false;
 		m_btn_xuanqu.SetWindowTextA("重新选取");
-		
 	}
 
-}
-
-
-void CPaperReaderDlg::OnBnClickedBtnShow()
-{
-	// TODO: 在此添加控件通知处理程序代码
-	SetTimer(2,10,TimerProc);
 }
 
 
@@ -320,14 +329,12 @@ VOID CALLBACK CPaperReaderDlg::TimerProc(
 	DWORD dwTime	   // current system time
 	)
 {
-
 	CRect rect;
 	HDC hDC;
 	CvvImage cimg;
 	if(idEvent == 1 && m_pCapture)			
 	{
 		m_pFrame =cvQueryFrame(m_pCapture);
-
 		if(m_Pic.GetSafeHwnd())
 		{
 			hDC = m_Pic.GetDC()->GetSafeHdc();
@@ -345,16 +352,38 @@ VOID CALLBACK CPaperReaderDlg::TimerProc(
 		hDC = m_Pic.GetDC()->GetSafeHdc();
 		for (int i = 0; i <= num; i++)
 		{
-			SetPixel(hDC,ptArray[i][1],ptArray[i][2],RGB(0,255,0));
-			SetPixel(hDC,ptArray[i][1]+1,ptArray[i][2],RGB(255,0,0));
-			SetPixel(hDC,ptArray[i][1],ptArray[i][2]+1,RGB(255,0,255));
-			SetPixel(hDC,ptArray[i][1]+1,ptArray[i][2]+1,RGB(255,255,0));
-			SetPixel(hDC,ptArray[i][1]-1,ptArray[i][2],RGB(0,255,0));
-			SetPixel(hDC,ptArray[i][1]-1,ptArray[i][2]-1,RGB(255,0,0));
-			SetPixel(hDC,ptArray[i][1]-1,ptArray[i][2]+1,RGB(255,0,255));
-			SetPixel(hDC,ptArray[i][1]+1,ptArray[i][2]-1,RGB(255,255,0));
-			SetPixel(hDC,ptArray[i][1],ptArray[i][2]-1,RGB(255,255,0));
+			SetPixel(hDC,ptArray[i][0],ptArray[i][1],RGB(255,0,0));
+			SetPixel(hDC,ptArray[i][0]+1,ptArray[i][1],RGB(255,0,0));
+			SetPixel(hDC,ptArray[i][0],ptArray[i][1]+1,RGB(255,0,0));
+			SetPixel(hDC,ptArray[i][0]+1,ptArray[i][1]+1,RGB(255,0,0));
+			SetPixel(hDC,ptArray[i][0]-1,ptArray[i][1],RGB(255,0,0));
+			SetPixel(hDC,ptArray[i][0]-1,ptArray[i][1]-1,RGB(255,0,0));
+			SetPixel(hDC,ptArray[i][0]-1,ptArray[i][1]+1,RGB(255,0,0));
+			SetPixel(hDC,ptArray[i][0]+1,ptArray[i][1]-1,RGB(255,0,0));
+			SetPixel(hDC,ptArray[i][0],ptArray[i][1]-1,RGB(255,0,0));
 		}
 		DeleteDC(hDC);
 	}
+}
+
+//菜单退出
+void CPaperReaderDlg::OnMenuExit()
+{
+	// TODO: 在此添加命令处理程序代码
+	if( MessageBox( "确认退出", "", MB_YESNO | MB_ICONQUESTION ) == IDYES  )
+	{
+		//释放资源代码
+		KillTimer(1);
+		KillTimer(2);
+		cvReleaseCapture(&m_pCapture);
+		this->SendMessage( WM_CLOSE );
+	}
+}
+
+
+void CPaperReaderDlg::OnMenuHelp()
+{
+	// TODO: 在此添加命令处理程序代码
+	CHelpDlg hDlg;
+	hDlg.DoModal();
 }
